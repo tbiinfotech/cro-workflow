@@ -1,0 +1,33 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "82ff3b79d9aa1136d95f52b71a9ef260"
+name = "cro workflow builder"
+handle = "cro-workflow-builder"
+application_url = "https://metallica-ic-wishes-lifestyle.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+include_config_on_deploy = true
+
+[webhooks]
+api_version = "2025-07"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_content,write_content"
+
+[auth]
+redirect_urls = ["https://metallica-ic-wishes-lifestyle.trycloudflare.com/auth/callback", "https://metallica-ic-wishes-lifestyle.trycloudflare.com/auth/shopify/callback", "https://metallica-ic-wishes-lifestyle.trycloudflare.com/api/auth/callback"]
+
+[pos]
+embedded = false
