@@ -4,7 +4,6 @@ import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createRequestHandler } from "@remix-run/express";
-import https from "https";
 import http from "http";
 import session from "express-session";
 
@@ -58,18 +57,13 @@ app.get("/privacy-policy", (req, res) => {
 });
 
 // All other requests go to Remix
-// app.all(
-//   "*",
-//   createRequestHandler({
-//     build,
-//     mode: process.env.NODE_ENV,
-//   })
-// );
-
-app.all("*", (req, res) => {
-  res.send("Server is working");
-});
-
+app.all(
+  "*",
+  createRequestHandler({
+    build,
+    mode: process.env.NODE_ENV,
+  })
+);
 
 const PORT = 3000;
 
