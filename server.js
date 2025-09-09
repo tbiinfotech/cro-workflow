@@ -71,14 +71,7 @@ app.all("*", (req, res) => {
 });
 
 
-
-
 const PORT = 3000;
-
-// https.createServer(app).listen(PORT, () => {
-//   console.log(`✅ HTTPS server running on port ${PORT}`);
-// });
-
 
 http.createServer(app).listen(PORT, () => {
   console.log(`✅ HTTPS server running on port ${PORT}`);
