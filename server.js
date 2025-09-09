@@ -5,7 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { createRequestHandler } from "@remix-run/express";
 import https from "https";
-import http from "https";
+import http from "http";
 import session from "express-session";
 
 // Import the Remix server build
@@ -74,5 +74,5 @@ app.all("*", (req, res) => {
 const PORT = 3000;
 
 http.createServer(app).listen(PORT, () => {
-  console.log(`✅ HTTPS server running on port ${PORT}`);
+  console.log(`✅ HTTP server running on port ${PORT}`);
 });
