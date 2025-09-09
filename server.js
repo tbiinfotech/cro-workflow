@@ -70,5 +70,5 @@ app.all(
 const PORT = 3000;
 
 https.createServer(app).listen(PORT, () => {
-  console.log(`✅ HTTPS server running at https://cro.ancestralsupplements.com`);
+  console.log(`✅ HTTPS server running on port ${PORT}`);
 });
