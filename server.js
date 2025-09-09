@@ -57,13 +57,18 @@ app.get("/privacy-policy", (req, res) => {
 });
 
 // All other requests go to Remix
-app.all(
-  "*",
-  createRequestHandler({
-    build,
-    mode: process.env.NODE_ENV,
-  })
-);
+// app.all(
+//   "*",
+//   createRequestHandler({
+//     build,
+//     mode: process.env.NODE_ENV,
+//   })
+// );
+
+app.all("*", (req, res) => {
+  res.send("Server is working");
+});
+
 
 
 
