@@ -18,7 +18,7 @@ function FindTitleForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-    const [orginalPage, setOrginalPage] = useState({title: "", handle: ""});
+    const [originalPage, setOrginalPage] = useState("");
   const [isChecked, setIsChecked] = useState<number[]>([]);
   // For TypeScript, this type means: "array of numbers"
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -28,7 +28,7 @@ function FindTitleForm() {
     setError("");
     setSuccess("");
     setPages([]);
-    setOrginalPage({title: "", handle: ""})
+    setOrginalPage("")
     setIsChecked([]);
   };
 
@@ -56,7 +56,7 @@ function FindTitleForm() {
     setError("");
     setSuccess("");
     setPages([]);
-    setOrginalPage({title: "", handle: ""});
+    setOrginalPage("");
     setIsChecked([]);
 
     if (!isValidUrl(pageUrl)) {
@@ -94,7 +94,7 @@ function FindTitleForm() {
       if (data.pages && data.body) {
         setPages(data.pages);
         setPageBody(data.body);
-        setOrginalPage({title: data.originalPage.title, handle: data.originalPage.handle});
+        setOrginalPage(data.originalPage);
         setSuccess("Title found successfully!");
       } else {
         setError("Title not found on the page.");
@@ -117,7 +117,7 @@ function FindTitleForm() {
       const data = {
         pages: selectedTitles,
         body: pageBody,
-        orginalPage,
+        original: originalPage,
       };
       // Send array of selected titles
       const response = await fetch("/api/submit/pages", {
@@ -137,7 +137,7 @@ function FindTitleForm() {
       setSuccess("Pages submitted successfully!");
       setIsChecked([]);
       setPages([]);
-      setOrginalPage({title: "", handle: ""});
+      setOrginalPage("");
       setPageBody([]);
       setPageUrl("");
     } catch (error) {
@@ -192,7 +192,7 @@ function FindTitleForm() {
                         setError("");
                         setSuccess("");
                         setPages([]);
-                        setOrginalPage({title: "", handle: ""});
+                        setOrginalPage("");
                         setIsChecked([]);
                       }}
                       disabled={loading || submitLoading}

@@ -11,9 +11,12 @@ import {
   useSetIndexFiltersMode,
   useBreakpoints,
   Page,
+  Icon,
 } from "@shopify/polaris";
 import { useState, useCallback } from "react";
 import { useLoaderData, useNavigate, useLocation } from "@remix-run/react";
+import { ViewIcon } from "@shopify/polaris-icons";
+import Modal from "./modal";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -43,6 +46,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       where,
       skip,
       take: pageSize,
+      include: {
+        duplicates: true, // Fetches all related duplicate_pages for each shopify_page
+      },
     }),
     prisma.shopify_pages.count({ where }),
   ]);
@@ -52,8 +58,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function AnalyticsWithTable() {
   const { pages, total } = useLoaderData();
+  const [duplicate_pages, setDuplicatePages] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
+
+  console.log("pages", pages);
 
   // Pagination and search state
   const urlParams = new URLSearchParams(location.search);
@@ -112,64 +121,90 @@ export default function AnalyticsWithTable() {
 
   const totalPages = Math.ceil(total / pageSize);
 
+  const handleVirew = useCallback((duplicate_pages) => {
+    console.log("duplicate_pages@@@@@@@@", duplicate_pages);
+    setDuplicatePages(duplicate_pages);
+    // setItemStrings(pages);
+  }, []);
+
   // Prepare rows for IndexTable
-  const rowMarkup = pages.map(({ title, handle, pageId }, index) => (
-    <IndexTable.Row id={pageId} key={pageId} position={index}>
-      <IndexTable.Cell>
-        <Text variant="bodyMd" fontWeight="bold" as="span">
-          {title}
-        </Text>
-      </IndexTable.Cell>
-      <IndexTable.Cell>{handle}</IndexTable.Cell>
-      <IndexTable.Cell>{pageId}</IndexTable.Cell>
-    </IndexTable.Row>
-  ));
+  const rowMarkup = pages.map(
+    ({ title, handle, pageId, duplicates }, index) => (
+      <IndexTable.Row id={pageId} key={pageId} position={index}>
+        <IndexTable.Cell>
+          <Text variant="bodyMd" fontWeight="bold" as="span">
+            {title}
+          </Text>
+        </IndexTable.Cell>
+        <IndexTable.Cell>{handle}</IndexTable.Cell>
+        <IndexTable.Cell>{pageId}</IndexTable.Cell>
+        <IndexTable.Cell>
+          <Icon
+            source={ViewIcon}
+            onClick={() => handleVirew(duplicates)}
+            tone="base"
+          />
+        </IndexTable.Cell>
+      </IndexTable.Row>
+    ),
+  );
+
+  console.log("duplicate_pages", duplicate_pages);
+
 
   return (
-    <Page title="Pages">
-      <LegacyCard>
-        <IndexFilters
-          queryValue={search}
-          queryPlaceholder="Search pages"
-          onQueryChange={handleSearchChange}
-          onQueryClear={() => handleSearchChange("")}
-          tabs={tabs}
-          selected={selectedTab}
-          onSelect={setSelectedTab}
-          mode={mode}
-          filters={[]}
-          setMode={setMode}
-          cancelAction={{
-            onAction: () => {
-              setSearch("");
-              setPage(1);
-              updateUrl("", 1);
-            },
-            disabled: false,
-            loading: false,
-          }}
+    <>
+      <Page title="Pages">
+        <Modal
+          activeModal={duplicate_pages.length > 0}
+          records={duplicate_pages}
+          setDuplicatePages={setDuplicatePages}
         />
-        <IndexTable
-          condensed={smDown}
-          resourceName={{ singular: "page", plural: "pages" }}
-          itemCount={total}
-          selectable={false}
-          headings={[
-            { title: "Title" },
-            { title: "Handle" },
-            { title: "Orginal Page" },
-          ]}
-          pagination={{
-            hasNext: page < totalPages,
-            onNext: () => handlePageChange(page + 1),
-            hasPrevious: page > 1,
-            onPrevious: () => handlePageChange(page - 1),
-          }}
-        >
-          {rowMarkup}
-        </IndexTable>
-        {/* You can add pagination controls here */}
-      </LegacyCard>
-    </Page>
+        <LegacyCard>
+          <IndexFilters
+            queryValue={search}
+            queryPlaceholder="Search pages"
+            onQueryChange={handleSearchChange}
+            onQueryClear={() => handleSearchChange("")}
+            tabs={tabs}
+            selected={selectedTab}
+            onSelect={setSelectedTab}
+            mode={mode}
+            filters={[]}
+            setMode={setMode}
+            cancelAction={{
+              onAction: () => {
+                setSearch("");
+                setPage(1);
+                updateUrl("", 1);
+              },
+              disabled: false,
+              loading: false,
+            }}
+          />
+          <IndexTable
+            condensed={smDown}
+            resourceName={{ singular: "page", plural: "pages" }}
+            itemCount={total}
+            selectable={false}
+            headings={[
+              { title: "Title" },
+              { title: "Handle" },
+              { title: "Orginal Page" },
+              { title: "Action" },
+            ]}
+            pagination={{
+              hasNext: page < totalPages,
+              onNext: () => handlePageChange(page + 1),
+              hasPrevious: page > 1,
+              onPrevious: () => handlePageChange(page - 1),
+            }}
+          >
+            {rowMarkup}
+          </IndexTable>
+          {/* You can add pagination controls here */}
+        </LegacyCard>
+      </Page>
+    </>
   );
 }

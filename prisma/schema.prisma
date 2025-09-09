@@ -32,8 +32,8 @@ model shopify_sessions {
 }
 
 model secret_keys {
-  id         String    @id
-  type       String
+  id         Int       @id @default(autoincrement())
+  type       String    @unique
   key        String
   value      String
   createdAt  DateTime  @default(now())
@@ -41,12 +41,27 @@ model secret_keys {
 }
 
 model shopify_pages {
-  id        Int     @id @default(autoincrement())
-  pageId    String  @unique
-  title     String
-  handle    String
-  bodyHtml  String?
-  originalPage Json?
-  createdAt DateTime
-  updatedAt DateTime
+  id            Int               @id @default(autoincrement())
+  pageId        String            @unique
+  title         String
+  handle        String
+  bodyHtml      String?
+  createdAt     DateTime
+  updatedAt     DateTime
+
+  duplicates    duplicate_pages[] // One-to-many
 }
+
+model duplicate_pages {
+  id             Int            @id @default(autoincrement())
+  shopifyPageId  Int            // Foreign key
+  pageId         String         @unique
+  title          String
+  handle         String
+  bodyHtml       String?
+  createdAt      DateTime
+  updatedAt      DateTime
+
+  shopifyPage    shopify_pages  @relation(fields: [shopifyPageId], references: [id])
+}
+

@@ -16,49 +16,68 @@ import {
   Banner,
   BlockStack,
 } from "@shopify/polaris";
-import { useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
+import prisma from "~/db.server";
 
-// In-memory store for demo purposes (replace with DB in production)
-let storedApiKey = "";
-
-type LoaderData = {
-  apiKey: string;
-};
-
+// Loader fetches and provides the latest saved API key to the frontend
 export const loader: LoaderFunction = async () => {
   // Fetch the saved API key from your DB or config
-  return json<LoaderData>({ apiKey: storedApiKey });
+  const secretKey = await prisma.secret_keys.findFirst({
+    where: { type: "Open_API" },
+  });
+  return json<LoaderData>({ apiKey: secretKey?.value ?? "" });
 };
 
-type ActionData = {
-  formError?: string;
-  successMessage?: string;
-};
-
+// Action saves the submitted API key and redirects on success
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const apiKey = formData.get("apiKey");
 
-  if (typeof apiKey !== "string" || apiKey.trim() === "") {
-    return json<ActionData>(
-      { formError: "API key is required" },
-      { status: 400 },
-    );
+  try {
+    if (typeof apiKey !== "string" || apiKey.trim() === "") {
+      return json<ActionData>(
+        { formError: "API key is required" },
+        { status: 400 },
+      );
+    }
+
+    await prisma.secret_keys.upsert({
+      where: { type: "Open_API" },
+      update: {
+        key: "apiKey",
+        value: apiKey.trim(),
+        updatedAt: new Date(),
+      },
+      create: {
+        type: "Open_API",
+        key: "apiKey",
+        value: apiKey.trim(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+
+    // Redirect to the same route to reload with the latest key
+    return json<ActionData>({ successMessage: "API key saved successfully!" });
+  } catch (error) {
+    return json<ActionData>({ errorMessage: "Failed to save API key" }, { status: 500 });
+  } finally {
+    return json<ActionData>({ successMessage: "API key saved successfully!" });
   }
-
-  // Save or update the API key in your DB or config
-  storedApiKey = apiKey.trim();
-
-  return json<ActionData>({ successMessage: "API key saved successfully!" });
 };
 
+// Frontend component displays always-up-to-date input value
 export default function ApiKeysPage() {
   const { apiKey } = useLoaderData<LoaderData>();
-  const [apiKeyValue, setApiKey] = useState(apiKey);
   const actionData = useActionData<ActionData>();
   const transition = useViewTransitionState();
-
   const isSubmitting = transition.state === "submitting";
+  const [apiKeyValue, setApiKey] = useState(apiKey);
+
+  // Update local state when loader data changes (after redirect)
+  React.useEffect(() => {
+    setApiKey(apiKey);
+  }, [apiKey]);
 
   const handleChange = useCallback(
     (newValue: string) => setApiKey(newValue),
@@ -71,41 +90,27 @@ export default function ApiKeysPage() {
         <Card sectioned>
           <Form method="post">
             <FormLayout>
-              {actionData?.formError && (
+              {actionData?.errorMessage && (
                 <Banner status="critical" title="Error" onDismiss={() => {}}>
-                  <p>{actionData.formError}</p>
-                </Banner>
-              )}
-              {actionData?.successMessage && (
-                <Banner status="success" title="Success" onDismiss={() => {}}>
-                  <p>{actionData.successMessage}</p>
+                  <p>{actionData.errorMessage}</p>
                 </Banner>
               )}
 
+              {actionData?.successMessage && (
+                <Banner status="success" onDismiss={() => {}}>
+                  <p>{actionData.successMessage}</p>
+                </Banner>
+              )}
               <TextField
                 label="Open API Key"
                 name="apiKey"
                 type="text"
                 value={apiKeyValue}
-                defaultValue={apiKey}
                 autoComplete="off"
                 disabled={isSubmitting}
                 onChange={handleChange}
                 required
               />
-
-              {/* <TextField
-                label="Third API Key"
-                name="apiKey"
-                type="text"
-                value={apiKeyValue}
-                defaultValue={apiKey}
-                autoComplete="off"
-                disabled={isSubmitting}
-                onChange={handleChange}
-                required
-              /> */}
-
               <BlockStack distribution="trailing">
                 <Button primary submit loading={isSubmitting}>
                   {apiKey ? "Update API Key" : "Save API Key"}

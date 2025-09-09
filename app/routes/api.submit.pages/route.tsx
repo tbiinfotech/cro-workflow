@@ -14,7 +14,7 @@ interface ShopifyPage {
 export const action = async ({ request }) => {
   try {
     const { session } = await authenticate.admin(request);
-    const { pages, body, orginalPage } = await request.json();
+    const { pages, body, original } = await request.json();
 
     if (!pages || !Array.isArray(pages)) {
       return json({ error: "Pages array is required" }, { status: 400 });
@@ -60,13 +60,33 @@ export const action = async ({ request }) => {
 
       console.log(page);
 
-      await prisma.shopify_pages.upsert({
+      const originalPage = await prisma.shopify_pages.upsert({
+        where: { pageId: original.admin_graphql_api_id.toString() },
+        update: {
+          title: original.title,
+          handle: original.handle,
+          bodyHtml: original.body_html,
+          createdAt: new Date(original.created_at),
+          updatedAt: new Date(original.updated_at),
+        },
+        create: {
+          pageId: original.admin_graphql_api_id.toString(),
+          title: page.title,
+          handle: page.handle,
+          bodyHtml: page.body_html,
+          createdAt: new Date(page.created_at),
+          updatedAt: new Date(page.updated_at),
+        },
+      });
+
+      if(originalPage){
+        await prisma.duplicate_pages.upsert({
         where: { pageId: page.admin_graphql_api_id.toString() },
         update: {
           title: page.title,
           handle: page.handle,
           bodyHtml: page.body_html,
-          originalPage: orginalPage,
+          shopifyPageId: originalPage.id,
           createdAt: new Date(page.created_at),
           updatedAt: new Date(page.updated_at),
         },
@@ -75,11 +95,12 @@ export const action = async ({ request }) => {
           title: page.title,
           handle: page.handle,
           bodyHtml: page.body_html,
-          originalPage: orginalPage,
+          shopifyPageId: originalPage.id,
           createdAt: new Date(page.created_at),
           updatedAt: new Date(page.updated_at),
         },
       });
+      }
     }
 
     return json({ results });

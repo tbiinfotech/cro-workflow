@@ -51,7 +51,6 @@ const getSEOPageTitles = async (url) => {
   }
 };
 
-
 // POST only: expects { handle: string } JSON body
 export const action = async ({ request }) => {
   try {
@@ -90,7 +89,9 @@ export const action = async ({ request }) => {
       return json({ error: "does not fetch the titles" }, { status: 500 });
     }
 
-    return json({ pages: gptResponse.pages, body: gptResponse.body, originalPage: page  });
+    return json({ pages: gptResponse.pages, body: gptResponse.body, originalPage: page }, {
+      status: 200,
+    });
   } catch (err) {
     console.error("API error:", err);
     return json(
