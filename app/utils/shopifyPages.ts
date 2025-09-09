@@ -1,94 +1,62 @@
-import fetch from 'node-fetch';
-import prisma from '~/db.server';
+import prisma from "~/db.server";
 
-const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN!;
-const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN!;
-const API_VERSION = '2025-07';
+export async function fetchAndSaveAllShopifyPages(admin) {
+  // Fetch all duplicate page records from DB
+  const duplicatePages = await prisma.duplicate_pages.findMany({});
 
-interface ShopifyPage {
-  id: number;
-  title: string;
-  handle: string;
-  body_html: string;
-  created_at: string;
-  updated_at: string;
-}
+  let processedCount = 0;
 
-interface ShopifyPagesResponse {
-  pages: ShopifyPage[];
-}
-
-async function fetchShopifyPages(pageInfo?: string): Promise<{ pages: ShopifyPage[]; nextPageInfo?: string }> {
-  const url = new URL(`https://${SHOPIFY_STORE_DOMAIN}/admin/api/${API_VERSION}/pages.json`);
-  url.searchParams.set('limit', '50');
-  if (pageInfo) {
-    url.searchParams.set('page_info', pageInfo);
-  }
-
-  const response = await fetch(url.toString(), {
-    headers: {
-      'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch pages: ${response.status} ${response.statusText}`);
-  }
-
-  const data: ShopifyPagesResponse = await response.json();
-
-  // Parse Link header for pagination
-  const linkHeader = response.headers.get('link');
-  let nextPageInfo: string | undefined = undefined;
-
-  if (linkHeader) {
-    const links = linkHeader.split(',');
-    for (const link of links) {
-      const [urlPart, relPart] = link.split(';').map((s) => s.trim());
-      if (relPart === 'rel="next"') {
-        const match = urlPart.match(/page_info=([^&>]+)/);
-        if (match) {
-          nextPageInfo = match[1];
+  for (const page of duplicatePages) {
+    // Build the GraphQL query to fetch page by handle
+    const QUERY = `
+      query PageByHandle($handle: String!) {
+        pageByHandle(handle: $handle) {
+          id
+          title
+          body
+          handle
+          url
+          createdAt
+          updatedAt
         }
       }
+    `;
+    const variables = { handle: page.handle };
+
+    // Call Shopify Admin GraphQL API
+    const resp = await admin.graphql(QUERY, { variables });
+    const page1 = resp.data?.pageByHandle;
+
+    // If page is missing, delete stale record
+    if (!page1) {
+      await prisma.duplicate_pages.delete({
+        where: { pageId: page.pageId }, // Assumes pageId is unique key
+      });
+      continue;
     }
-  }
 
-  return { pages: data.pages, nextPageInfo };
-}
-
-export async function fetchAndSaveAllShopifyPages() {
-  let pageInfo: string | undefined = undefined;
-  let allPages: ShopifyPage[] = [];
-
-  do {
-    const { pages, nextPageInfo } = await fetchShopifyPages(pageInfo);
-    allPages = allPages.concat(pages);
-    pageInfo = nextPageInfo;
-  } while (pageInfo);
-
-  // Save or update pages in DB
-  for (const page of allPages) {
-    await prisma.shopify_pages.upsert({
-      where: { pageId: page.id.toString() },
+    // Upsert page record into duplicate_pages
+    await prisma.duplicate_pages.upsert({
+      where: { pageId: page1.id },
       update: {
-        title: page.title,
-        handle: page.handle,
-        bodyHtml: page.body_html,
-        createdAt: new Date(page.created_at),
-        updatedAt: new Date(page.updated_at),
+        title: page1.title,
+        handle: page1.handle,
+        bodyHtml: page1.body,
+        createdAt: page1.createdAt ? new Date(page1.createdAt) : undefined,
+        updatedAt: page1.updatedAt ? new Date(page1.updatedAt) : undefined,
       },
       create: {
-        pageId: page.id.toString(),
-        title: page.title,
-        handle: page.handle,
-        bodyHtml: page.body_html,
-        createdAt: new Date(page.created_at),
-        updatedAt: new Date(page.updated_at),
+        pageId: page1.id,
+        title: page1.title,
+        handle: page1.handle,
+        bodyHtml: page1.body,
+        createdAt: page1.createdAt ? new Date(page1.createdAt) : undefined,
+        updatedAt: page1.updatedAt ? new Date(page1.updatedAt) : undefined,
       },
     });
+
+    processedCount++;
   }
 
-  return allPages.length;
+  return processedCount;
 }

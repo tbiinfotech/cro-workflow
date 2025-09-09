@@ -2,6 +2,7 @@ import prisma from "~/db.server";
 import { json } from "@remix-run/node";
 import { authenticate } from "~/shopify.server";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+import RedirectIcon from "~/assets/redirect.svg";
 
 import {
   Text,
@@ -12,14 +13,19 @@ import {
   useBreakpoints,
   Page,
   Icon,
+  Link,
 } from "@shopify/polaris";
 import { useState, useCallback } from "react";
 import { useLoaderData, useNavigate, useLocation } from "@remix-run/react";
 import { ViewIcon } from "@shopify/polaris-icons";
 import Modal from "./modal";
+// import { fetchAndSaveAllShopifyPages } from "~/utils/shopifyPages";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
+  // const { storefront } = await authenticate.public.appProxy(request);
+  // await fetchAndSaveAllShopifyPages(storefront);
+
   console.log("Session ###########", session);
   const shop = session.shop;
 
@@ -57,7 +63,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function AnalyticsWithTable() {
-  const { pages, total } = useLoaderData();
+  const { pages, total, shop } = useLoaderData();
   const [duplicate_pages, setDuplicatePages] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
@@ -106,6 +112,7 @@ export default function AnalyticsWithTable() {
   // Tabs example (simplified)
   const [itemStrings, setItemStrings] = useState([]);
   const [selectedTab, setSelectedTab] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const tabs = itemStrings.map((item, index) => ({
     content: item,
@@ -121,10 +128,9 @@ export default function AnalyticsWithTable() {
 
   const totalPages = Math.ceil(total / pageSize);
 
-  const handleVirew = useCallback((duplicate_pages) => {
-    console.log("duplicate_pages@@@@@@@@", duplicate_pages);
-    setDuplicatePages(duplicate_pages);
-    // setItemStrings(pages);
+  const handleView = useCallback((duplicates) => {
+    setDuplicatePages(duplicates);
+    setModalOpen(true);
   }, []);
 
   // Prepare rows for IndexTable
@@ -139,27 +145,44 @@ export default function AnalyticsWithTable() {
         <IndexTable.Cell>{handle}</IndexTable.Cell>
         <IndexTable.Cell>{pageId}</IndexTable.Cell>
         <IndexTable.Cell>
-          <Icon
-            source={ViewIcon}
-            onClick={() => handleVirew(duplicates)}
-            tone="base"
-          />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12, // space between icons (choose any value, e.g. 8, 12, or 16)
+            }}
+          >
+            <Link target="_blank" url={`https://${shop}/pages/${handle}`}>
+              <img alt="redirect" src={RedirectIcon} height={20} width={20} />
+            </Link>
+            <div
+              style={{ cursor: "pointer" }}
+              onClick={() => handleView(duplicates)}
+            >
+              <Icon source={ViewIcon} tone="base" />
+            </div>
+          </div>
         </IndexTable.Cell>
       </IndexTable.Row>
     ),
   );
 
-  console.log("duplicate_pages", duplicate_pages);
-
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setDuplicatePages([]);
+  };
 
   return (
     <>
       <Page title="Pages">
-        <Modal
-          activeModal={duplicate_pages.length > 0}
-          records={duplicate_pages}
-          setDuplicatePages={setDuplicatePages}
-        />
+        {modalOpen && (
+          <Modal
+            activeModal={modalOpen}
+            records={duplicate_pages}
+            handleClose={handleCloseModal}
+            shop={shop}
+          />
+        )}
         <LegacyCard>
           <IndexFilters
             queryValue={search}

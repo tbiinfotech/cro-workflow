@@ -1,25 +1,42 @@
-// Only imports and the Modal component
-import { Frame, Modal, TextContainer } from "@shopify/polaris";
-import React from "react";
+import { Link, Modal, TextContainer, BlockStack, Icon } from "@shopify/polaris";
+import RedirectIcon from "~/assets/redirect.svg";
 
 export default function ModalExample({
   activeModal,
   records,
-  setDuplicatePages,
+  handleClose,
+  shop,
 }) {
-  // Close handler: parent sets activeModal=false by clearing duplicates
-  const handleClose = () => setDuplicatePages([]);
-
-  // (Optional) Render your duplicates data instead of hardcoded message
-  // Example: render list
+  // List content for duplicates
   const content = records?.length ? (
-    <ul>
+    <BlockStack vertical spacing="loose">
       {records.map((record, idx) => (
-        <li key={record.pageId || idx}>
-          <strong>{record.title}</strong> ({record.handle})
-        </li>
+        <BlockStack
+          alignment="center"
+          spacing="tight"
+          key={record.pageId || idx}
+        >
+          <TextContainer>
+            <strong>{record.title}</strong>{" "}
+            <Link
+              target="_blank"
+              url={`https://${shop}/pages/${record.handle}`}
+              monochrome
+              removeUnderline
+              aria-label={`Open ${record.title} page in a new tab`}
+            >
+              <img
+                alt="Redirect"
+                src={RedirectIcon}
+                height={24}
+                width={24}
+                style={{ verticalAlign: "middle" }}
+              />
+            </Link>
+          </TextContainer>
+        </BlockStack>
       ))}
-    </ul>
+    </BlockStack>
   ) : (
     <TextContainer>
       <p>No duplicates found for this page.</p>
@@ -27,23 +44,17 @@ export default function ModalExample({
   );
 
   return (
-    <div style={{ height: "500px" }}>
-      <Frame>
-        <Modal
-          open={activeModal}
-          onClose={handleClose}
-          title="Duplicate Pages"
-          primaryAction={{
-            content: "Close",
-            onAction: handleClose,
-          }}
-          // Remove secondary actions for clarity
-        >
-          <Modal.Section>
-            {content}
-          </Modal.Section>
-        </Modal>
-      </Frame>
-    </div>
+    <Modal
+      open={activeModal}
+      onClose={handleClose}
+      title="Duplicate Pages"
+      primaryAction={{
+        content: "Close",
+        onAction: handleClose,
+      }}
+      sectioned
+    >
+      <Modal.Section>{content}</Modal.Section>
+    </Modal>
   );
 }

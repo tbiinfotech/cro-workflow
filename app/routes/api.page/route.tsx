@@ -11,20 +11,23 @@ const getSEOPageTitles = async (url) => {
     const prompt = `You are an SEO expert for Shopify stores. Analyze the content at this URL: {${url}}. Suggest three creative, keyword-rich, SEO-optimized page titles that will help improve organic traffic. Reply only in valid JSON format with the key "pages" as an array, for example: {"pages": [{ "title": "First title", "handle": "first-handle" }, { "title": "Second title", "handle": "second-handle" }, { "title": "Third title", "handle": "third-handle" }]}`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
+      // model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 200,
     });
 
     const rawAIContent = completion.choices[0]?.message?.content;
-    console.log("AI response: ############", rawAIContent, completion);
+    const cleaned = rawAIContent?.replace(/```json\s*/i, "").replace(/```/i, "").trim();
+
+    console.log("AI response: ############", cleaned);
 
     let pages = [];
     let error = null;
 
     try {
       // Parse the AI response as JSON
-      const aiJson = JSON.parse(rawAIContent);
+      const aiJson = JSON.parse(cleaned);
       if (Array.isArray(aiJson.pages)) {
         // Check that each page object has both title and handle
         pages = aiJson.pages.filter(
@@ -41,13 +44,13 @@ const getSEOPageTitles = async (url) => {
     }
 
     if (error) {
-      return { error, pages: [], body: "<h1>Hello I am testing the pages</h1>" };
+      return { error, pages: []};
     }
 
-    return { pages, body: "<h1>Hello I am testing the pages</h1>" };
+    return { pages };
   } catch (apiError) {
     console.error("OpenAI API error:", apiError);
-    return { error: "OpenAI API error: " + apiError.message, pages: [], body: "<h1>Hello I am testing the pages</h1>" };
+    return { error: "OpenAI API error: " + apiError.message, pages: [] };
   }
 };
 
@@ -56,7 +59,7 @@ export const action = async ({ request }) => {
   try {
     // const { storefront } = await authenticate.public.appProxy(request);
     const { session } = await authenticate.admin(request);
-    const { handle, page_url } = await request.json();
+    const { handle, page_url, body } = await request.json();
 
     const shop = session.shop;
     const token = session.accessToken;
@@ -89,7 +92,7 @@ export const action = async ({ request }) => {
       return json({ error: "does not fetch the titles" }, { status: 500 });
     }
 
-    return json({ pages: gptResponse.pages, body: gptResponse.body, originalPage: page }, {
+    return json({ pages: gptResponse.pages, originalPage: page }, {
       status: 200,
     });
   } catch (err) {

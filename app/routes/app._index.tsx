@@ -91,9 +91,9 @@ function FindTitleForm() {
 
       console.log("data", data);
 
-      if (data.pages && data.body) {
+      if (data.pages && data.originalPage) {
         setPages(data.pages);
-        setPageBody(data.body);
+        setPageBody(data.originalPage.body_html);
         setOrginalPage(data.originalPage);
         setSuccess("Title found successfully!");
       } else {
