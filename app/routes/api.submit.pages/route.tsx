@@ -38,6 +38,7 @@ export const action = async ({ request }) => {
             title: page.title,
             body_html: body,
             handle: page.handle,
+            template_suffix: original.template_suffix,
           },
         }),
       });
@@ -71,11 +72,11 @@ export const action = async ({ request }) => {
         },
         create: {
           pageId: original.admin_graphql_api_id.toString(),
-          title: page.title,
-          handle: page.handle,
-          bodyHtml: page.body_html,
-          createdAt: new Date(page.created_at),
-          updatedAt: new Date(page.updated_at),
+          title: original.title,
+          handle: original.handle,
+          bodyHtml: original.body_html,
+          createdAt: new Date(original.created_at),
+          updatedAt: new Date(original.updated_at),
         },
       });
 

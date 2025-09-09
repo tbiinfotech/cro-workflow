@@ -3,7 +3,7 @@
 client_id = "82ff3b79d9aa1136d95f52b71a9ef260"
 name = "cro workflow builder"
 handle = "cro-workflow-builder"
-application_url = "https://dose-horizon-hundred-many.trycloudflare.com"
+application_url = "https://warehouse-suggestions-pest-says.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,7 +27,7 @@ api_version = "2025-07"
 scopes = "read_content,write_content"
 
 [auth]
-redirect_urls = ["https://dose-horizon-hundred-many.trycloudflare.com/auth/callback", "https://dose-horizon-hundred-many.trycloudflare.com/auth/shopify/callback", "https://dose-horizon-hundred-many.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://warehouse-suggestions-pest-says.trycloudflare.com/auth/callback", "https://warehouse-suggestions-pest-says.trycloudflare.com/auth/shopify/callback", "https://warehouse-suggestions-pest-says.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
