@@ -19,6 +19,7 @@ import { useState, useCallback } from "react";
 import { useLoaderData, useNavigate, useLocation } from "@remix-run/react";
 import { ViewIcon } from "@shopify/polaris-icons";
 import Modal from "./modal";
+import { error } from "console";
 // import { fetchAndSaveAllShopifyPages } from "~/utils/shopifyPages";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -59,8 +60,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     prisma.shopify_pages.count({ where }),
   ]);
 
-
-
   return json({ pages, total, shop });
 };
 
@@ -74,11 +73,31 @@ export async function action({ request }: ActionFunctionArgs) {
       return json({ error: "Missing pageId" }, { status: 400 });
     }
 
-    await prisma.duplicate_pages.delete({
-      where: { pageId },
+    const data = {
+      pageId,
+    };
+
+    const response = await fetch("/api/delete/page", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
 
-    return json({ success: true });
+    if (!response.ok) {
+      throw new Error("Failed to submit titles");
+    }
+
+    const jsRes = await response.json();
+
+    if (jsRes.success) {
+      await prisma.duplicate_pages.delete({
+        where: { pageId },
+      });
+
+      return json({ success: true });
+    }
+
+    return json({ error: jsRes.error }, { status: 400 });
   }
 
   return json({ error: "Invalid action" }, { status: 400 });

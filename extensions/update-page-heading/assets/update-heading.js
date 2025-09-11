@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cro-page-heading")?.dataset.pageMetafield;
 
   if (headingDiv && headingVal) {
-    const target = headingDiv.querySelector("span p");
+    const target = headingDiv.querySelector("span");
     if (target) {
       target.textContent = headingVal;
     }
