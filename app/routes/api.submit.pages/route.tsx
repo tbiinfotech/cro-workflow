@@ -49,7 +49,7 @@ export const action = async ({ request }) => {
       if (!resp.ok) {
         results.push({ success: false, error: result.errors || result });
       } else {
-        // const pageId = result.page.id;
+        const pageId = result.page.id;
 
         await fetch(`https://${shop}/admin/api/2025-07/metafields.json`, {
           method: "POST",
