@@ -59,8 +59,30 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     prisma.shopify_pages.count({ where }),
   ]);
 
+
+
   return json({ pages, total, shop });
 };
+
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "delete") {
+    const pageId = formData.get("pageId") as string;
+    if (!pageId) {
+      return json({ error: "Missing pageId" }, { status: 400 });
+    }
+
+    await prisma.duplicate_pages.delete({
+      where: { pageId },
+    });
+
+    return json({ success: true });
+  }
+
+  return json({ error: "Invalid action" }, { status: 400 });
+}
 
 export default function AnalyticsWithTable() {
   const { pages, total, shop } = useLoaderData();

@@ -1,12 +1,22 @@
 import { json } from "@remix-run/node";
 import { authenticate } from "~/shopify.server";
 import { OpenAI } from "openai";
+import prisma from "~/db.server";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 const getSEOPageTitles = async (url) => {
+  const secretKey = await prisma.secret_keys.findFirst({
+    where: { type: "Open_API" },
+  });
+
+  if(!secretKey){
+    return { error: "Open API key not found", pages: []}
+  }
+
+  const openai = new OpenAI({
+    apiKey: secretKey.value,
+  });
+
   try {
     const prompt = `You are an SEO expert for Shopify stores. Analyze the content at this URL: {${url}}. Suggest three creative, keyword-rich, SEO-optimized page titles that will help improve organic traffic. Reply only in valid JSON format with the key "pages" as an array, for example: {"pages": [{ "title": "First title", "handle": "first-handle" }, { "title": "Second title", "handle": "second-handle" }, { "title": "Third title", "handle": "third-handle" }]}`;
 
@@ -18,7 +28,10 @@ const getSEOPageTitles = async (url) => {
     });
 
     const rawAIContent = completion.choices[0]?.message?.content;
-    const cleaned = rawAIContent?.replace(/```json\s*/i, "").replace(/```/i, "").trim();
+    const cleaned = rawAIContent
+      ?.replace(/```json\s*/i, "")
+      .replace(/```/i, "")
+      .trim();
 
     console.log("AI response: ############", cleaned);
 
@@ -31,7 +44,7 @@ const getSEOPageTitles = async (url) => {
       if (Array.isArray(aiJson.pages)) {
         // Check that each page object has both title and handle
         pages = aiJson.pages.filter(
-          p => typeof p.title === "string" && typeof p.handle === "string"
+          (p) => typeof p.title === "string" && typeof p.handle === "string",
         );
         if (pages.length === 0) {
           error = "AI response 'pages' array does not contain valid objects.";
@@ -44,7 +57,7 @@ const getSEOPageTitles = async (url) => {
     }
 
     if (error) {
-      return { error, pages: []};
+      return { error, pages: [] };
     }
 
     return { pages };
@@ -92,9 +105,12 @@ export const action = async ({ request }) => {
       return json({ error: "does not fetch the titles" }, { status: 500 });
     }
 
-    return json({ pages: gptResponse.pages, originalPage: page }, {
-      status: 200,
-    });
+    return json(
+      { pages: gptResponse.pages, originalPage: page },
+      {
+        status: 200,
+      },
+    );
   } catch (err) {
     console.error("API error:", err);
     return json(

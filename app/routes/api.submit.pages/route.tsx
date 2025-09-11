@@ -27,6 +27,25 @@ export const action = async ({ request }) => {
     const results = [];
 
     for (const page of pages) {
+      const bodyHtml = `${body ? body : ""}
+    <div id="cro-page-heading" data-page-metafield="${page.title}">
+      <!-- Replo block will mount here -->
+    </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const headingDiv = document.querySelector("[data-heading]");
+      const headingVal = document.getElementById("cro-page-heading")?.dataset.pageMetafield;
+
+      if (headingDiv && headingVal) {
+        const target = headingDiv.querySelector("span p");
+        if (target) {
+          target.textContent = headingVal;
+        }
+      }
+    });
+    </script>
+    `;
+
       const resp = await fetch(`https://${shop}/admin/api/2025-07/pages.json`, {
         method: "POST",
         headers: {
@@ -36,7 +55,7 @@ export const action = async ({ request }) => {
         body: JSON.stringify({
           page: {
             title: page.title,
-            body_html: body,
+            body_html: bodyHtml,
             handle: page.handle,
             template_suffix: original.template_suffix,
           },
@@ -48,6 +67,26 @@ export const action = async ({ request }) => {
       if (!resp.ok) {
         results.push({ success: false, error: result.errors || result });
       } else {
+        // const pageId = result.page.id;
+
+        // await fetch(`https://${shop}/admin/api/2025-07/metafields.json`, {
+        //   method: "POST",
+        //   headers: {
+        //     "X-Shopify-Access-Token": token,
+        //     "Content-Type": "application/json",
+        //   },
+        //   body: JSON.stringify({
+        //     metafield: {
+        //       namespace: "custom",
+        //       key: "heading",
+        //       type: "single_line_text_field", // must match your definition type
+        //       value: page.title, // <-- assign your value
+        //       owner_resource: "page",
+        //       owner_id: pageId,
+        //     },
+        //   }),
+        // });
+
         results.push({ success: true, page: result.page });
       }
     }
@@ -80,27 +119,27 @@ export const action = async ({ request }) => {
         },
       });
 
-      if(originalPage){
+      if (originalPage) {
         await prisma.duplicate_pages.upsert({
-        where: { pageId: page.admin_graphql_api_id.toString() },
-        update: {
-          title: page.title,
-          handle: page.handle,
-          bodyHtml: page.body_html,
-          shopifyPageId: originalPage.id,
-          createdAt: new Date(page.created_at),
-          updatedAt: new Date(page.updated_at),
-        },
-        create: {
-          pageId: page.admin_graphql_api_id.toString(),
-          title: page.title,
-          handle: page.handle,
-          bodyHtml: page.body_html,
-          shopifyPageId: originalPage.id,
-          createdAt: new Date(page.created_at),
-          updatedAt: new Date(page.updated_at),
-        },
-      });
+          where: { pageId: page.admin_graphql_api_id.toString() },
+          update: {
+            title: page.title,
+            handle: page.handle,
+            bodyHtml: page.body_html,
+            shopifyPageId: originalPage.id,
+            createdAt: new Date(page.created_at),
+            updatedAt: new Date(page.updated_at),
+          },
+          create: {
+            pageId: page.admin_graphql_api_id.toString(),
+            title: page.title,
+            handle: page.handle,
+            bodyHtml: page.body_html,
+            shopifyPageId: originalPage.id,
+            createdAt: new Date(page.created_at),
+            updatedAt: new Date(page.updated_at),
+          },
+        });
       }
     }
 
