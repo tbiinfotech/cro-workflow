@@ -1,0 +1,12 @@
+<div id="cro-page-heading" data-page-metafield="{{ page.metafields.custom.heading }}"></div>
+
+{% schema %}
+{
+  "name": "Cro Workflow Builder",
+  "target": "body",
+  "settings": []
+}
+{% endschema %}
+
+<!-- App Embed Block for Bundle Widget -->
+<script defer src="{{ 'update-heading.js' | asset_url }}"></script>

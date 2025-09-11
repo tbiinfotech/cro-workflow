@@ -3,7 +3,7 @@
 client_id = "82ff3b79d9aa1136d95f52b71a9ef260"
 name = "cro workflow builder"
 handle = "cro-workflow-builder"
-application_url = "https://cluster-organ-realize-hawk.trycloudflare.com"
+application_url = "https://scheme-switzerland-background-cool.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,7 +27,7 @@ api_version = "2025-07"
 scopes = "read_content,write_content"
 
 [auth]
-redirect_urls = ["https://cluster-organ-realize-hawk.trycloudflare.com/auth/callback", "https://cluster-organ-realize-hawk.trycloudflare.com/auth/shopify/callback", "https://cluster-organ-realize-hawk.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://scheme-switzerland-background-cool.trycloudflare.com/auth/callback", "https://scheme-switzerland-background-cool.trycloudflare.com/auth/shopify/callback", "https://scheme-switzerland-background-cool.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

@@ -27,24 +27,6 @@ export const action = async ({ request }) => {
     const results = [];
 
     for (const page of pages) {
-      const bodyHtml = `${body ? body : ""}
-    <div id="cro-page-heading" data-page-metafield="${page.title}">
-      <!-- Replo block will mount here -->
-    </div>
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const headingDiv = document.querySelector("[data-heading]");
-      const headingVal = document.getElementById("cro-page-heading")?.dataset.pageMetafield;
-
-      if (headingDiv && headingVal) {
-        const target = headingDiv.querySelector("span p");
-        if (target) {
-          target.textContent = headingVal;
-        }
-      }
-    });
-    </script>
-    `;
 
       const resp = await fetch(`https://${shop}/admin/api/2025-07/pages.json`, {
         method: "POST",
@@ -55,7 +37,7 @@ export const action = async ({ request }) => {
         body: JSON.stringify({
           page: {
             title: page.title,
-            body_html: bodyHtml,
+            body_html: body,
             handle: page.handle,
             template_suffix: original.template_suffix,
           },
@@ -69,23 +51,23 @@ export const action = async ({ request }) => {
       } else {
         // const pageId = result.page.id;
 
-        // await fetch(`https://${shop}/admin/api/2025-07/metafields.json`, {
-        //   method: "POST",
-        //   headers: {
-        //     "X-Shopify-Access-Token": token,
-        //     "Content-Type": "application/json",
-        //   },
-        //   body: JSON.stringify({
-        //     metafield: {
-        //       namespace: "custom",
-        //       key: "heading",
-        //       type: "single_line_text_field", // must match your definition type
-        //       value: page.title, // <-- assign your value
-        //       owner_resource: "page",
-        //       owner_id: pageId,
-        //     },
-        //   }),
-        // });
+        await fetch(`https://${shop}/admin/api/2025-07/metafields.json`, {
+          method: "POST",
+          headers: {
+            "X-Shopify-Access-Token": token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            metafield: {
+              namespace: "custom",
+              key: "heading",
+              type: "single_line_text_field", // must match your definition type
+              value: page.title, // <-- assign your value
+              owner_resource: "page",
+              owner_id: pageId,
+            },
+          }),
+        });
 
         results.push({ success: true, page: result.page });
       }
