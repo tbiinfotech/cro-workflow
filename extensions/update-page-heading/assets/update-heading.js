@@ -7,7 +7,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (headingDiv && headingVal) {
     const target = headingDiv.querySelector("span");
     if (target) {
-      target.textContent = headingVal;
+      // target.textContent = headingVal;
+      target.innerHTML = headingVal;
     }
   }
 })

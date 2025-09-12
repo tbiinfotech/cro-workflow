@@ -35,6 +35,7 @@ export default function ModalExample({
 
   // Keep local copy of records for live updates
   const [localRecords, setLocalRecords] = useState<RecordItem[]>(records);
+  const [deleting, setDeleting] = useState(false);
 
   // Reset localRecords whenever parent sends new ones
   useEffect(() => {
@@ -50,21 +51,44 @@ export default function ModalExample({
     setConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
+    setDeleting(true);
     if (selectedPage) {
+      const data = {
+        pageId: selectedPage.pageId,
+      };
+
+      const response = await fetch("/api/delete/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        setDeleting(false);
+        throw new Error("Falied to delete page from Shopify.");
+      }
+
+      const jsRes = await response.json();
+
+      if (jsRes.success) {
+        setDeleting(false);
+        fetcher.submit(
+          { intent: "delete", pageId: selectedPage.pageId },
+          { method: "post" },
+        );
+
+        // Optimistically update local list
+        setLocalRecords((prev) =>
+          prev.filter((rec) => rec.pageId !== selectedPage.pageId),
+        );
+
+        setConfirmOpen(false);
+        setSelectedPage(null);
+      }
       // Call server-side action
-      fetcher.submit(
-        { intent: "delete", pageId: selectedPage.pageId },
-        { method: "post" },
-      );
-
-      // Optimistically update local list
-      setLocalRecords((prev) =>
-        prev.filter((rec) => rec.pageId !== selectedPage.pageId),
-      );
-
-      setConfirmOpen(false);
-      setSelectedPage(null);
+    } else {
+      setDeleting(false);
     }
   };
 
@@ -141,6 +165,7 @@ export default function ModalExample({
           content: "Delete",
           destructive: true,
           onAction: confirmDelete,
+          loading: deleting,
         }}
         secondaryActions={[
           {
@@ -154,6 +179,10 @@ export default function ModalExample({
             <p>
               Are you sure you want to delete{" "}
               <strong>{selectedPage?.title}</strong>?
+            </p>
+            <p style={{ marginTop: "8px", color: "red" }}>
+              This will also permanently delete the page from your Shopify
+              store.
             </p>
           </TextContainer>
         </Modal.Section>

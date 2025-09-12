@@ -27,7 +27,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   // const { storefront } = await authenticate.public.appProxy(request);
   // await fetchAndSaveAllShopifyPages(storefront);
 
-  console.log("Session ###########", session);
   const shop = session.shop;
 
   const url = new URL(request.url);
@@ -39,13 +38,26 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   // Filtering logic for "title", "pageId", and "handle" fields
   const where = search
     ? {
-        OR: [
-          { title: { contains: search, mode: "insensitive" } },
-          { pageId: { contains: search, mode: "insensitive" } },
-          { handle: { contains: search, mode: "insensitive" } },
+        AND: [
+          {
+            OR: [
+              { title: { contains: search, mode: "insensitive" } },
+              { pageId: { contains: search, mode: "insensitive" } },
+              { handle: { contains: search, mode: "insensitive" } },
+            ],
+          },
+          {
+            duplicates: {
+              some: {}, // ensures at least one duplicate exists
+            },
+          },
         ],
       }
-    : {};
+    : {
+        duplicates: {
+          some: {}, // ensures at least one duplicate exists
+        },
+      };
 
   // Get paginated records
   const [pages, total] = await Promise.all([
@@ -54,7 +66,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       skip,
       take: pageSize,
       include: {
-        duplicates: true, // Fetches all related duplicate_pages for each shopify_page
+        duplicates: true,
       },
     }),
     prisma.shopify_pages.count({ where }),
@@ -73,29 +85,11 @@ export async function action({ request }: ActionFunctionArgs) {
       return json({ error: "Missing pageId" }, { status: 400 });
     }
 
-    const data = {
-      pageId,
-    };
-
-    const response = await fetch("/api/delete/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+    await prisma.duplicate_pages.delete({
+      where: { pageId },
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to submit titles");
-    }
-
-    const jsRes = await response.json();
-
-    if (jsRes.success) {
-      await prisma.duplicate_pages.delete({
-        where: { pageId },
-      });
-
-      return json({ success: true });
-    }
+    return json({ success: true });
 
     return json({ error: jsRes.error }, { status: 400 });
   }
