@@ -15,6 +15,7 @@ import {
   Button,
   Banner,
   BlockStack,
+  Frame,
 } from "@shopify/polaris";
 import React, { useCallback, useState } from "react";
 import prisma from "~/db.server";
@@ -60,7 +61,10 @@ export const action: ActionFunction = async ({ request }) => {
     // Redirect to the same route to reload with the latest key
     return json<ActionData>({ successMessage: "API key saved successfully!" });
   } catch (error) {
-    return json<ActionData>({ errorMessage: "Failed to save API key" }, { status: 500 });
+    return json<ActionData>(
+      { errorMessage: "Failed to save API key" },
+      { status: 500 },
+    );
   } finally {
     return json<ActionData>({ successMessage: "API key saved successfully!" });
   }
@@ -86,40 +90,42 @@ export default function ApiKeysPage() {
 
   return (
     <AppProvider>
-      <Page title="Manage Open API Key">
-        <Card sectioned>
-          <Form method="post">
-            <FormLayout>
-              {actionData?.errorMessage && (
-                <Banner status="critical" title="Error" onDismiss={() => {}}>
-                  <p>{actionData.errorMessage}</p>
-                </Banner>
-              )}
+      <Frame>
+        <Page title="Manage Open API Key">
+          <Card sectioned>
+            <Form method="post">
+              <FormLayout>
+                {actionData?.errorMessage && (
+                  <Banner status="critical" title="Error" onDismiss={() => {}}>
+                    <p>{actionData.errorMessage}</p>
+                  </Banner>
+                )}
 
-              {actionData?.successMessage && (
-                <Banner status="success" onDismiss={() => {}}>
-                  <p>{actionData.successMessage}</p>
-                </Banner>
-              )}
-              <TextField
-                label="Open API Key"
-                name="apiKey"
-                type="text"
-                value={apiKeyValue}
-                autoComplete="off"
-                disabled={isSubmitting}
-                onChange={handleChange}
-                required
-              />
-              <BlockStack distribution="trailing">
-                <Button primary submit loading={isSubmitting}>
-                  {apiKey ? "Update API Key" : "Save API Key"}
-                </Button>
-              </BlockStack>
-            </FormLayout>
-          </Form>
-        </Card>
-      </Page>
+                {actionData?.successMessage && (
+                  <Banner status="success" onDismiss={() => {}}>
+                    <p>{actionData.successMessage}</p>
+                  </Banner>
+                )}
+                <TextField
+                  label="Open API Key"
+                  name="apiKey"
+                  type="text"
+                  value={apiKeyValue}
+                  autoComplete="off"
+                  disabled={isSubmitting}
+                  onChange={handleChange}
+                  required
+                />
+                <BlockStack distribution="trailing">
+                  <Button primary submit loading={isSubmitting}>
+                    {apiKey ? "Update API Key" : "Save API Key"}
+                  </Button>
+                </BlockStack>
+              </FormLayout>
+            </Form>
+          </Card>
+        </Page>
+      </Frame>
     </AppProvider>
   );
 }

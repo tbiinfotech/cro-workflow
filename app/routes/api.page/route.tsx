@@ -102,7 +102,7 @@ export const action = async ({ request }) => {
     const gptResponse = await getSEOPageTitles(page_url);
 
     if (gptResponse?.error) {
-      return json({ error: "does not fetch the titles" }, { status: 500 });
+      return json({ error: gptResponse?.error }, { status: 500 });
     }
 
     return json(

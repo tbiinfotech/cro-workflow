@@ -14,20 +14,47 @@ import {
   Page,
   Icon,
   Link,
+  Frame,
 } from "@shopify/polaris";
 import { useState, useCallback } from "react";
 import { useLoaderData, useNavigate, useLocation } from "@remix-run/react";
 import { ViewIcon } from "@shopify/polaris-icons";
 import Modal from "./modal";
-import { error } from "console";
+import {
+  getIntelligemsConfig,
+  IntelligemsHydrogenProvider,
+  useIgTrack,
+} from "@intelligems/headless/hydrogen";
 // import { fetchAndSaveAllShopifyPages } from "~/utils/shopifyPages";
+
+const IgTrack = ({
+  cartOrCheckoutToken,
+  currency,
+  country,
+}: {
+  cartOrCheckoutToken: string | undefined | null;
+  currency: string | undefined | null;
+  country: string | undefined | null;
+}) => {
+  useIgTrack({
+    cartOrCheckoutToken,
+    currency,
+    country,
+  });
+  return null;
+};
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
+  const intelligems = await getIntelligemsConfig(
+    "05535b3d-6216-450a-ab6c-b678dd995808",
+  );
+
   // const { storefront } = await authenticate.public.appProxy(request);
   // await fetchAndSaveAllShopifyPages(storefront);
 
   const shop = session.shop;
+  const token = session.accessToken;
 
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
@@ -72,7 +99,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     prisma.shopify_pages.count({ where }),
   ]);
 
-  return json({ pages, total, shop });
+  return json({ pages, total, shop, intelligems, token });
 };
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -98,7 +125,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function AnalyticsWithTable() {
-  const { pages, total, shop } = useLoaderData();
+  const { pages, total, shop, intelligems, token } = useLoaderData();
   const [duplicate_pages, setDuplicatePages] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
@@ -209,6 +236,7 @@ export default function AnalyticsWithTable() {
 
   return (
     <>
+    <Frame>
       <Page title="Pages">
         {modalOpen && (
           <Modal
@@ -263,6 +291,7 @@ export default function AnalyticsWithTable() {
           {/* You can add pagination controls here */}
         </LegacyCard>
       </Page>
+      </Frame>
     </>
   );
 }

@@ -6,11 +6,13 @@ import {
   Icon,
   InlineStack,
   Text,
+  Toast,
+  Frame,
 } from "@shopify/polaris";
 import RedirectIcon from "~/assets/redirect.svg";
-import { DeleteIcon } from "@shopify/polaris-icons";
+import { DeleteIcon, ClipboardIcon } from "@shopify/polaris-icons";
 import { useFetcher } from "@remix-run/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface RecordItem {
   pageId: string;
@@ -36,6 +38,7 @@ export default function ModalExample({
   // Keep local copy of records for live updates
   const [localRecords, setLocalRecords] = useState<RecordItem[]>(records);
   const [deleting, setDeleting] = useState(false);
+  const [toastActive, setToastActive] = useState(null);
 
   // Reset localRecords whenever parent sends new ones
   useEffect(() => {
@@ -71,41 +74,65 @@ export default function ModalExample({
 
       const jsRes = await response.json();
 
-      if (jsRes.success) {
-        setDeleting(false);
-        fetcher.submit(
-          { intent: "delete", pageId: selectedPage.pageId },
-          { method: "post" },
-        );
+      setDeleting(false);
+      fetcher.submit(
+        { intent: "delete", pageId: selectedPage.pageId },
+        { method: "post" },
+      );
 
-        // Optimistically update local list
-        setLocalRecords((prev) =>
-          prev.filter((rec) => rec.pageId !== selectedPage.pageId),
-        );
+      // Optimistically update local list
+      setLocalRecords((prev) =>
+        prev.filter((rec) => rec.pageId !== selectedPage.pageId),
+      );
 
-        setConfirmOpen(false);
-        setSelectedPage(null);
-      }
+      setConfirmOpen(false);
+      setSelectedPage(null);
+
       // Call server-side action
     } else {
       setDeleting(false);
     }
   };
 
+  const handleCopyClick = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setToastActive(true);
+  };
+
+  const toggleActive = useCallback(
+    () => setToastActive((active) => !active),
+    [],
+  );
+
+  const toastMarkup = toastActive ? (
+    <Toast
+      content="Copied to clipboard!"
+      duration={10000}
+      onDismiss={toggleActive}
+    />
+  ) : null;
+
   const content =
     localRecords?.length > 0 ? (
-      <BlockStack gap="400">
+      <BlockStack gap="100">
         {localRecords.map((record) => (
-          <InlineStack
+          <div
             key={record.pageId}
-            align="space-between"
-            blockAlign="center"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
           >
             {/* Left side: Title + Redirect link */}
-            <InlineStack gap="200" blockAlign="center">
+            <div style={{ width: "90%", display: "flex" }}>
               <Text as="span" fontWeight="bold">
                 {record.title}
               </Text>
+            </div>
+
+            {/* Right side: Delete icon */}
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <Link
                 target="_blank"
                 url={`https://${shop}/pages/${record.handle}`}
@@ -121,17 +148,26 @@ export default function ModalExample({
                   style={{ verticalAlign: "middle" }}
                 />
               </Link>
-            </InlineStack>
 
-            {/* Right side: Delete icon */}
-            <div
-              role="button"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleDeleteClick(record)}
-            >
-              <Icon source={DeleteIcon} tone="critical" />
+              <div
+                role="button"
+                style={{ cursor: "pointer", width: "20px" }}
+                onClick={() =>
+                  handleCopyClick(`https://${shop}/pages/${record.handle}`)
+                }
+              >
+                <Icon source={ClipboardIcon} tone="base" />
+              </div>
+
+              <div
+                role="button"
+                style={{ cursor: "pointer", width: "20px" }}
+                onClick={() => handleDeleteClick(record)}
+              >
+                <Icon source={DeleteIcon} tone="critical" />
+              </div>
             </div>
-          </InlineStack>
+          </div>
         ))}
       </BlockStack>
     ) : (
@@ -153,8 +189,8 @@ export default function ModalExample({
         }}
       >
         <Modal.Section>{content}</Modal.Section>
+        {toastMarkup}
       </Modal>
-
       {/* Confirmation modal */}
       <Modal
         size="small"
@@ -187,6 +223,8 @@ export default function ModalExample({
           </TextContainer>
         </Modal.Section>
       </Modal>
+
+      {/* {toastMarkup} */}
     </>
   );
 }
