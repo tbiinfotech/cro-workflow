@@ -20,35 +20,11 @@ import { useState, useCallback } from "react";
 import { useLoaderData, useNavigate, useLocation } from "@remix-run/react";
 import { ViewIcon } from "@shopify/polaris-icons";
 import Modal from "./modal";
-import {
-  getIntelligemsConfig,
-  IntelligemsHydrogenProvider,
-  useIgTrack,
-} from "@intelligems/headless/hydrogen";
 // import { fetchAndSaveAllShopifyPages } from "~/utils/shopifyPages";
 
-const IgTrack = ({
-  cartOrCheckoutToken,
-  currency,
-  country,
-}: {
-  cartOrCheckoutToken: string | undefined | null;
-  currency: string | undefined | null;
-  country: string | undefined | null;
-}) => {
-  useIgTrack({
-    cartOrCheckoutToken,
-    currency,
-    country,
-  });
-  return null;
-};
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
-  const intelligems = await getIntelligemsConfig(
-    "05535b3d-6216-450a-ab6c-b678dd995808",
-  );
 
   // const { storefront } = await authenticate.public.appProxy(request);
   // await fetchAndSaveAllShopifyPages(storefront);
