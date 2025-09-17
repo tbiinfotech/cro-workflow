@@ -75,7 +75,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     prisma.shopify_pages.count({ where }),
   ]);
 
-  return json({ pages, total, shop, intelligems, token });
+  return json({ pages, total, shop, token });
 };
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -101,7 +101,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function AnalyticsWithTable() {
-  const { pages, total, shop, intelligems, token } = useLoaderData();
+  const { pages, total, shop, token } = useLoaderData();
   const [duplicate_pages, setDuplicatePages] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
