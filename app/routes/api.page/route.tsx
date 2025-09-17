@@ -3,14 +3,13 @@ import { authenticate } from "~/shopify.server";
 import { OpenAI } from "openai";
 import prisma from "~/db.server";
 
-
 const getSEOPageTitles = async (url) => {
   const secretKey = await prisma.secret_keys.findFirst({
     where: { type: "Open_API" },
   });
 
-  if(!secretKey){
-    return { error: "Open API key not found", pages: []}
+  if (!secretKey) {
+    return { error: "Open API key not found", pages: [] };
   }
 
   const openai = new OpenAI({
@@ -18,7 +17,25 @@ const getSEOPageTitles = async (url) => {
   });
 
   try {
-    const prompt = `You are an SEO expert for Shopify stores. Analyze the content at this URL: {${url}}. Suggest three creative, keyword-rich, SEO-optimized page titles that will help improve organic traffic. Reply only in valid JSON format with the key "pages" as an array, for example: {"pages": [{ "title": "First title", "handle": "first-handle" }, { "title": "Second title", "handle": "second-handle" }, { "title": "Third title", "handle": "third-handle" }]}`;
+    // const prompt = `You are an SEO expert for Shopify stores. Analyze the content at this URL: {${url}}. Suggest three creative, keyword-rich, SEO-optimized page titles that will help improve organic traffic. Reply only in valid JSON format with the key "pages" as an array, for example: {"pages": [{ "title": "First title", "handle": "first-handle" }, { "title": "Second title", "handle": "second-handle" }, { "title": "Third title", "handle": "third-handle" }]}`;
+
+    const prompt = `
+    Analyze the content at this URL: {${url}}.
+
+    Act as the world’s finest Conversion Rate Optimization (CRO) and direct response marketing expert whose specialty is consumer packaged goods DTC landing page funnels. Your only goal is to write three unique, high-converting headline variations that can be tested against the current control headline. These headlines should grab immediate attention, create emotional impact, speak directly to the visitor’s desires or pain points, build urgency or credibility, and ultimately drive the highest possible purchase conversion rate from paid traffic.
+
+    The brand is Ancestral Supplements, offering whole food organ supplements to improve vitality and wellness. All headline variations should stay true to this positioning while maximizing persuasive power and compelling direct response appeal. Do not optimize for SEO, ignore keyword stuffing or ranking considerations, and focus entirely on persuasion, clarity, and language that motivates prospective customers to buy. Treat the headline as the most important “ad-to-landing-page bridge” that keeps visitors engaged and pushes them toward making a purchase..
+
+    Output ONLY valid JSON in this exact format:
+    {
+      "pages": [
+        { "title": "First title suggestion", "handle": "first-title-suggestion-handle" },
+        { "title": "Second title suggestion", "handle": "second-title-suggestion-handle" },
+        { "title": "Third title suggestion", "handle": "third-title-suggestion-handle" }
+      ]
+    }
+
+    Only reply with valid JSON—no explanations, no markdown.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
