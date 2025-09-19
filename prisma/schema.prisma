@@ -31,11 +31,10 @@ model shopify_sessions {
   emailVerified Boolean?  @default(false)
 }
 
-model secret_keys {
+model setting {
   id         Int       @id @default(autoincrement())
-  type       String    @unique
-  key        String
-  value      String
+  apiKey      String
+  prompt     String    @default("test")
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 }

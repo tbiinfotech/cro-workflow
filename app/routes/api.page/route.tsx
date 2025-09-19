@@ -4,9 +4,7 @@ import { OpenAI } from "openai";
 import prisma from "~/db.server";
 
 const getSEOPageTitles = async (url) => {
-  const secretKey = await prisma.secret_keys.findFirst({
-    where: { type: "Open_API" },
-  });
+  const secretKey = await prisma.setting.findFirst();
 
   if (!secretKey) {
     return { error: "Open API key not found", pages: [] };
@@ -22,9 +20,7 @@ const getSEOPageTitles = async (url) => {
     const prompt = `
     Analyze the content at this URL: {${url}}.
 
-    Act as the world’s finest Conversion Rate Optimization (CRO) and direct response marketing expert whose specialty is consumer packaged goods DTC landing page funnels. Your only goal is to write three unique, high-converting headline variations that can be tested against the current control headline. These headlines should grab immediate attention, create emotional impact, speak directly to the visitor’s desires or pain points, build urgency or credibility, and ultimately drive the highest possible purchase conversion rate from paid traffic.
-
-    The brand is Ancestral Supplements, offering whole food organ supplements to improve vitality and wellness. All headline variations should stay true to this positioning while maximizing persuasive power and compelling direct response appeal. Do not optimize for SEO, ignore keyword stuffing or ranking considerations, and focus entirely on persuasion, clarity, and language that motivates prospective customers to buy. Treat the headline as the most important “ad-to-landing-page bridge” that keeps visitors engaged and pushes them toward making a purchase..
+   ${secretKey.prompt}
 
     Output ONLY valid JSON in this exact format:
     {
