@@ -34,6 +34,10 @@ export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const apiKey = formData.get("apiKey");
   const prompt = formData.get("prompt");
+  const convert_api_key = formData.get("convertApiKey");
+  const convert_secret_key = formData.get("convertSecretrKey");
+  const convert_project_id = formData.get("convertProjectId");
+  const convert_account_id = formData.get("convertAccountId");
   const id = formData.get("id");
 
   try {
@@ -51,6 +55,10 @@ export const action: ActionFunction = async ({ request }) => {
         data: {
           apiKey: apiKey.trim(),
           prompt,
+          convert_api_key,
+          convert_secret_key,
+          convert_project_id,
+          convert_account_id,
           updatedAt: new Date(),
         },
       });
@@ -62,6 +70,10 @@ export const action: ActionFunction = async ({ request }) => {
         data: {
           apiKey: apiKey.trim(),
           prompt,
+          convert_api_key,
+          convert_secret_key,
+          convert_project_id,
+          convert_account_id,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -84,12 +96,16 @@ export const action: ActionFunction = async ({ request }) => {
 // Frontend component displays always-up-to-date input value
 export default function ApiKeysPage() {
   const { data } = useLoaderData<LoaderData>();
-  const { id, apiKey, prompt } = data || {};
+  const { id, apiKey, prompt, convert_api_key, convert_secret_key, convert_project_id, convert_account_id } = data || {};
   let actionData = useActionData<ActionData>();
   const transition = useViewTransitionState();
   const isSubmitting = transition.state === "submitting";
   const [apiKeyValue, setApiKey] = useState(apiKey);
   const [gptPromptValue, setGptPromptValue] = useState(prompt);
+  const [convertApiKey, setConvertApiKey] = useState(convert_api_key);
+  const [convertSeceretKey, setConvertSeceretKey] = useState(convert_secret_key);
+  const [convertProjectId, setConvertProjectId] = useState(convert_project_id);
+  const [convertAccountId, setConvertAccountId] = useState(convert_account_id);
     const [showBanner, setShowBanner] = useState(true);
 
   const [errors, setErrors] = useState({ api_error: "", prompt_error: "" });
@@ -157,9 +173,54 @@ export default function ApiKeysPage() {
                   multiline={8}
                   error={errors.prompt_error}
                 />
+
+                <TextField
+                  label="Convert Account Id"
+                  name="convertAccountId"
+                  type="text"
+                  value={convertAccountId}
+                  autoComplete="off"
+                  disabled={isSubmitting}
+                  onChange={(value) => handleChange(value, setConvertAccountId)}
+                  error={errors.prompt_error}
+                />
+
+                <TextField
+                  label="Convert Project Id"
+                  name="convertProjectId"
+                  type="text"
+                  value={convertProjectId}
+                  autoComplete="off"
+                  disabled={isSubmitting}
+                  onChange={(value) => handleChange(value, setConvertProjectId)}
+                  error={errors.prompt_error}
+                />
+
+                <TextField
+                  label="Convert API Key"
+                  name="convertApiKey"
+                  type="text"
+                  value={convertApiKey}
+                  autoComplete="off"
+                  disabled={isSubmitting}
+                  onChange={(value) => handleChange(value, setConvertApiKey)}
+                  error={errors.prompt_error}
+                />
+
+                <TextField
+                  label="Convert Secret Key"
+                  name="convertSecretrKey"
+                  type="text"
+                  value={convertSeceretKey}
+                  autoComplete="off"
+                  disabled={isSubmitting}
+                  onChange={(value) => handleChange(value, setConvertSeceretKey)}
+                  error={errors.prompt_error}
+                />
+
                 <BlockStack distribution="trailing">
                   <Button primary submit loading={isSubmitting} onClick={() => setShowBanner(!showBanner)}>
-                    {apiKey ? "Update API Key" : "Save API Key"}
+                    {apiKey ? "Update Settings" : "Save Settings"}
                   </Button>
                 </BlockStack>
               </FormLayout>

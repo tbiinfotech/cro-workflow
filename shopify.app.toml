@@ -2,32 +2,34 @@
 
 client_id = "82ff3b79d9aa1136d95f52b71a9ef260"
 name = "cro workflow builder"
-handle = "cro-workflow-builder"
-application_url = "https://partially-samba-doc-laptops.trycloudflare.com"
+application_url = "https://cro.ancestralsupplements.com/"
 embedded = true
+handle = "cro-workflow-builder"
 
 [build]
 automatically_update_urls_on_dev = true
-include_config_on_deploy = true
 
 [webhooks]
 api_version = "2025-07"
 
   [[webhooks.subscriptions]]
   topics = [ "app/scopes_update" ]
-  uri = "/webhooks/app/scopes_update"
+  uri = "https://role-household-enables-gained.trycloudflare.com/webhooks/app/scopes_update"
 
   [[webhooks.subscriptions]]
   topics = [ "app/uninstalled" ]
-  uri = "/webhooks/app/uninstalled"
-
+  uri = "https://role-household-enables-gained.trycloudflare.com/webhooks/app/uninstalled"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_content,write_content"
 
 [auth]
-redirect_urls = ["https://partially-samba-doc-laptops.trycloudflare.com/auth/callback", "https://partially-samba-doc-laptops.trycloudflare.com/auth/shopify/callback", "https://partially-samba-doc-laptops.trycloudflare.com/api/auth/callback"]
+redirect_urls = [
+  "https://cro.ancestralsupplements.com/auth/callback",
+  "https://cro.ancestralsupplements.com/auth/shopify/callback",
+  "https://cro.ancestralsupplements.com/api/auth/callback"
+]
 
 [pos]
 embedded = false

@@ -15,6 +15,13 @@ export const action = async ({ request }) => {
   try {
     const { session } = await authenticate.admin(request);
     const { pages, body, original } = await request.json();
+    const settings = await prisma.setting.findFirst();
+
+    if (!settings) {
+      return json({ error: "Settings not found" }, { status: 404 });
+    }
+
+    const { convert_api_key, convert_secret_key, convert_project_id, convert_account_id } = settings || {};
 
     if (!pages || !Array.isArray(pages)) {
       return json({ error: "Pages array is required" }, { status: 400 });
@@ -27,7 +34,6 @@ export const action = async ({ request }) => {
     const results = [];
 
     for (const page of pages) {
-
       const resp = await fetch(`https://${shop}/admin/api/2025-07/pages.json`, {
         method: "POST",
         headers: {
@@ -80,8 +86,6 @@ export const action = async ({ request }) => {
 
       const { page } = result;
 
-      console.log(page);
-
       const originalPage = await prisma.shopify_pages.upsert({
         where: { pageId: original.admin_graphql_api_id.toString() },
         update: {
@@ -122,6 +126,68 @@ export const action = async ({ request }) => {
             updatedAt: new Date(page.updated_at),
           },
         });
+      }
+    }
+
+    const splitVariations = results
+      .filter((result) => result.success)
+      .map((result, i) => ({
+        name: `Variation ${i + 1}`,
+        url: `https://${shop}/pages/${result.page.handle}`,
+        traffic: (1 / results.length) * 100,
+        changes: [],
+      }));
+
+    if (splitVariations.length > 1) {
+      const convertPayload = {
+        name: `Shopify Page Split Test ${Date.now()}`,
+        description:
+          "Testing different Shopify Page designs across multiple URLs",
+        type: "split_url",
+        status: "active",
+        url: "https://ancestralsupplements.com",
+        variations: [
+          {
+            name: "Original",
+            url: `https://${shop}/pages/${original.handle}`,
+            traffic: (1 / results.length) * 100,
+            changes: [],
+          },
+          ...splitVariations,
+        ],
+        audiences: [],
+        locations: [],
+        hypotheses: [],
+        tags: [],
+        environment: "production",
+        settings: {
+          traffic_distribution: "even",
+          include_jquery: false,
+          force_variation: false,
+        },
+        integrations_settings: {},
+        include: ["variations", "goals"],
+        expand: ["goals"],
+      };
+
+      const convertResp = await fetch(
+        `https://api.convert.com/api/v2/accounts/${convert_account_id}/projects/${convert_project_id}/experiences/add`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${convert_api_key}:${convert_secret_key}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(convertPayload),
+        },
+      );
+
+      const convertResult = await convertResp.json();
+
+      if (!convertResp.ok) {
+        console.error("Convert API error:", convertResult);
+      } else {
+        // Optionally: attach experiment result to response or store experiment ID in DB
       }
     }
 
