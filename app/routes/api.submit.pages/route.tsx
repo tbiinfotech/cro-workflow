@@ -137,8 +137,7 @@ export const action = async ({ request }) => {
     const splitVariations = results
       .filter((result) => result.success)
       .map((result, i) => ({
-        name: `Variation ${i + 1}`,
-        traffic: (1 / results.length) * 100,
+        name: `Variation for page handle ${result.page.handle}`,
         changes: [
           {
             type: "defaultRedirect",
@@ -152,7 +151,7 @@ export const action = async ({ request }) => {
 
     if (splitVariations.length > 1) {
       const convertPayload = {
-        name: `Shopify Page Split Test ${Date.now()}`,
+        name: `CRO Page Split Test ${original.handle}`,
         description:
           "Testing different Shopify Page designs across multiple URLs",
         type: "split_url",
@@ -161,8 +160,6 @@ export const action = async ({ request }) => {
         variations: [
           {
             name: "Original",
-            url: `https://${shop}/pages/${original.handle}`,
-            traffic: (1 / results.length) * 100,
             changes: [
               {
                 type: "defaultRedirect",
@@ -175,14 +172,6 @@ export const action = async ({ request }) => {
           },
           ...splitVariations,
         ],
-        // audiences: [],
-        // locations: [],
-        // hypotheses: [],
-        // tags: [],
-        environment: "production",
-        // integrations_settings: {},
-        // include: ["variations", "goals"],
-        // expand: ["goals"],
       };
 
       const convertResp = await fetch(
