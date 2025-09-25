@@ -142,6 +142,7 @@ export const action = async ({ request }) => {
           {
             type: "defaultRedirect",
             data: {
+              // case_sensitive: false,
               original_pattern: `https://${shop}/pages/${original.handle}`,
               variation_pattern: `https://${shop}/pages/${result.page.handle}`,
             },
@@ -156,7 +157,7 @@ export const action = async ({ request }) => {
           "Testing different Shopify Page designs across multiple URLs",
         type: "split_url",
         status: "active",
-        url: "https://ancestralsupplements.com",
+        url: `https://${shop}/pages/${original.handle}`,
         variations: [
           {
             name: "Original",
@@ -164,6 +165,7 @@ export const action = async ({ request }) => {
               {
                 type: "defaultRedirect",
                 data: {
+                  // case_sensitive: false,
                   original_pattern: `https://${shop}/pages/${original.handle}`,
                   variation_pattern: `https://${shop}/pages/${original.handle}`,
                 },
