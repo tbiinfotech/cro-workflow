@@ -143,8 +143,8 @@ export const action = async ({ request }) => {
             type: "defaultRedirect",
             data: {
               // case_sensitive: false,
-              original_pattern: `https://${shop}/pages/${original.handle}`,
-              variation_pattern: `https://${shop}/pages/${result.page.handle}`,
+              original_pattern: `https://ancestralsupplements.com/pages/${original.handle}`,
+              variation_pattern: `https://ancestralsupplements.com/pages/${result.page.handle}`,
             },
           },
         ],
@@ -157,7 +157,7 @@ export const action = async ({ request }) => {
           "Testing different Shopify Page designs across multiple URLs",
         type: "split_url",
         status: "active",
-        url: `https://${shop}/pages/${original.handle}`,
+        url: `https://ancestralsupplements.com/pages/${original.handle}`,
         variations: [
           {
             name: "Original",
@@ -166,8 +166,8 @@ export const action = async ({ request }) => {
                 type: "defaultRedirect",
                 data: {
                   // case_sensitive: false,
-                  original_pattern: `https://${shop}/pages/${original.handle}`,
-                  variation_pattern: `https://${shop}/pages/${original.handle}`,
+                  original_pattern: `https://ancestralsupplements.com/pages/${original.handle}`,
+                  variation_pattern: `https://ancestralsupplements.com/pages/${original.handle}`,
                 },
               },
             ],
