@@ -187,7 +187,9 @@ export const action = async ({ request }) => {
 
       const convertLocatioJsn = await convertLocation.json();
 
-      if (convertLocatioJsn.ok) {
+      console.log("convertLocatioJsn #########", convertLocatioJsn)
+
+      if (convertLocation.ok) {
         const location = convertLocatioJsn.id;
 
         const convertPayload = {
@@ -230,11 +232,15 @@ export const action = async ({ request }) => {
 
         const convertResult = await convertResp.json();
 
+        console.log("convertResult #########", convertResult)
+
         if (!convertResp.ok) {
           console.error("Convert API error:", convertResult);
         } else {
           // Optionally: attach experiment result to response or store experiment ID in DB
         }
+      }else{
+        console.error("convertLocatioJsn API error:", convertLocatioJsn);
       }
     }
 
