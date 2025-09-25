@@ -151,49 +151,90 @@ export const action = async ({ request }) => {
       }));
 
     if (splitVariations.length > 1) {
-      const convertPayload = {
+      const convertlocationPayload = {
+        description: "Original URL of the experience",
         name: `CRO Page Split Test ${original.handle}`,
-        description:
-          "Testing different Shopify Page designs across multiple URLs",
-        type: "split_url",
-        status: "active",
-        url: `https://ancestralsupplements.com/pages/${original.handle}`,
-        variations: [
-          {
-            name: "Original",
-            changes: [
-              {
-                type: "defaultRedirect",
-                data: {
-                  // case_sensitive: false,
-                  original_pattern: `https://ancestralsupplements.com/pages/${original.handle}`,
-                  variation_pattern: `https://ancestralsupplements.com/pages/${original.handle}`,
+        rules: {
+          OR: [
+            {
+              AND: [
+                {
+                  OR_WHEN: [
+                    {
+                      matching: { match_type: "matches", negated: false },
+                      rule_type: "url",
+                      value: `https://ancestralsupplements.com/pages/${original.handle}`,
+                    },
+                  ],
                 },
-              },
-            ],
-          },
-          ...splitVariations,
-        ],
+              ],
+            },
+          ],
+        },
       };
 
-      const convertResp = await fetch(
-        `https://api.convert.com/api/v2/accounts/${convert_account_id}/projects/${convert_project_id}/experiences/add`,
+      const convertLocation = await fetch(
+        `https://api.convert.com/api/v2/accounts/${convert_account_id}/projects/${convert_project_id}/locations/add`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${convert_api_key}:${convert_secret_key}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(convertPayload),
+          body: JSON.stringify(convertlocationPayload),
         },
       );
 
-      const convertResult = await convertResp.json();
+      const convertLocatioJsn = await convertLocation.json();
 
-      if (!convertResp.ok) {
-        console.error("Convert API error:", convertResult);
-      } else {
-        // Optionally: attach experiment result to response or store experiment ID in DB
+      if (convertLocatioJsn.ok) {
+        const location = convertLocatioJsn.id;
+
+        const convertPayload = {
+          name: `CRO Page Split Test ${original.handle}`,
+          description:
+            "Testing different Shopify Page designs across multiple URLs",
+          type: "split_url",
+          status: "active",
+          url: `https://ancestralsupplements.com/pages/${original.handle}`,
+          locations: [location],
+          variations: [
+            {
+              name: "Original",
+              changes: [
+                {
+                  type: "defaultRedirect",
+                  data: {
+                    // case_sensitive: false,
+                    original_pattern: `https://ancestralsupplements.com/pages/${original.handle}`,
+                    variation_pattern: `https://ancestralsupplements.com/pages/${original.handle}`,
+                  },
+                },
+              ],
+            },
+            ...splitVariations,
+          ],
+        };
+
+        const convertResp = await fetch(
+          `https://api.convert.com/api/v2/accounts/${convert_account_id}/projects/${convert_project_id}/experiences/add`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${convert_api_key}:${convert_secret_key}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(convertPayload),
+          },
+        );
+
+        const convertResult = await convertResp.json();
+
+        if (!convertResp.ok) {
+          console.error("Convert API error:", convertResult);
+        } else {
+          // Optionally: attach experiment result to response or store experiment ID in DB
+        }
       }
     }
 
