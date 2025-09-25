@@ -21,7 +21,12 @@ export const action = async ({ request }) => {
       return json({ error: "Settings not found" }, { status: 404 });
     }
 
-    const { convert_api_key, convert_secret_key, convert_project_id, convert_account_id } = settings || {};
+    const {
+      convert_api_key,
+      convert_secret_key,
+      convert_project_id,
+      convert_account_id,
+    } = settings || {};
 
     if (!pages || !Array.isArray(pages)) {
       return json({ error: "Pages array is required" }, { status: 400 });
@@ -133,9 +138,16 @@ export const action = async ({ request }) => {
       .filter((result) => result.success)
       .map((result, i) => ({
         name: `Variation ${i + 1}`,
-        url: `https://${shop}/pages/${result.page.handle}`,
         traffic: (1 / results.length) * 100,
-        changes: [],
+        changes: [
+          {
+            type: "defaultRedirect",
+            data: {
+              original_pattern: `https://${shop}/pages/${original.handle}`,
+              variation_pattern: `https://${shop}/pages/${result.page.handle}`,
+            },
+          },
+        ],
       }));
 
     if (splitVariations.length > 1) {
@@ -151,23 +163,26 @@ export const action = async ({ request }) => {
             name: "Original",
             url: `https://${shop}/pages/${original.handle}`,
             traffic: (1 / results.length) * 100,
-            changes: [],
+            changes: [
+              {
+                type: "defaultRedirect",
+                data: {
+                  original_pattern: `https://${shop}/pages/${original.handle}`,
+                  variation_pattern: `https://${shop}/pages/${original.handle}`,
+                },
+              },
+            ],
           },
           ...splitVariations,
         ],
-        audiences: [],
-        locations: [],
-        hypotheses: [],
-        tags: [],
+        // audiences: [],
+        // locations: [],
+        // hypotheses: [],
+        // tags: [],
         environment: "production",
-        settings: {
-          traffic_distribution: "even",
-          include_jquery: false,
-          force_variation: false,
-        },
-        integrations_settings: {},
-        include: ["variations", "goals"],
-        expand: ["goals"],
+        // integrations_settings: {},
+        // include: ["variations", "goals"],
+        // expand: ["goals"],
       };
 
       const convertResp = await fetch(
