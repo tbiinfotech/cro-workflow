@@ -2,20 +2,12 @@ import { json } from "@remix-run/node";
 import { authenticate } from "~/shopify.server";
 import prisma from "~/db.server";
 
-interface ShopifyPage {
-  id: number;
-  title: string;
-  handle: string;
-  body_html: string;
-  created_at: string;
-  updated_at: string;
-}
-
 export const action = async ({ request }) => {
   try {
     const { session } = await authenticate.admin(request);
     const { pages, body, original } = await request.json();
     const settings = await prisma.setting.findFirst();
+    let orginalPageId;
 
     if (!settings) {
       return json({ error: "Settings not found" }, { status: 404 });
@@ -111,13 +103,17 @@ export const action = async ({ request }) => {
       });
 
       if (originalPage) {
+        orginalPageId = originalPage.id;
+      }
+
+      if (orginalPageId) {
         await prisma.duplicate_pages.upsert({
           where: { pageId: page.admin_graphql_api_id.toString() },
           update: {
             title: page.title,
             handle: page.handle,
             bodyHtml: page.body_html,
-            shopifyPageId: originalPage.id,
+            shopifyPageId: orginalPageId,
             createdAt: new Date(page.created_at),
             updatedAt: new Date(page.updated_at),
           },
@@ -126,7 +122,7 @@ export const action = async ({ request }) => {
             title: page.title,
             handle: page.handle,
             bodyHtml: page.body_html,
-            shopifyPageId: originalPage.id,
+            shopifyPageId: orginalPageId,
             createdAt: new Date(page.created_at),
             updatedAt: new Date(page.updated_at),
           },
@@ -187,8 +183,6 @@ export const action = async ({ request }) => {
 
       const convertLocatioJsn = await convertLocation.json();
 
-      console.log("convertLocatioJsn #########", convertLocatioJsn)
-
       if (convertLocation.ok) {
         const location = convertLocatioJsn.id;
 
@@ -232,14 +226,21 @@ export const action = async ({ request }) => {
 
         const convertResult = await convertResp.json();
 
-        console.log("convertResult #########", convertResult)
-
         if (!convertResp.ok) {
           console.error("Convert API error:", convertResult);
         } else {
-          // Optionally: attach experiment result to response or store experiment ID in DB
+          console.log("convertResult #########", convertResult);
+          await prisma.convert_experiences.create({
+            data: {
+              name: convertResult.name,
+              shopifyPageId: orginalPageId,
+              experienceId: convertResult.id,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            },
+          });
         }
-      }else{
+      } else {
         console.error("convertLocatioJsn API error:", convertLocatioJsn);
       }
     }

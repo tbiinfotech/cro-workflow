@@ -52,7 +52,8 @@ model shopify_pages {
   createdAt     DateTime
   updatedAt     DateTime
 
-  duplicates    duplicate_pages[] // One-to-many
+  duplicates            duplicate_pages[]
+  convert_experiences   convert_experiences?
 }
 
 model duplicate_pages {
@@ -68,3 +69,13 @@ model duplicate_pages {
   shopifyPage    shopify_pages  @relation(fields: [shopifyPageId], references: [id])
 }
 
+model convert_experiences {
+  id             Int            @id @default(autoincrement())
+  name           String
+  shopifyPageId  Int            @unique
+  experienceId   Int         @unique
+  createdAt      DateTime
+  updatedAt      DateTime
+
+  shopifyPage    shopify_pages  @relation(fields: [shopifyPageId], references: [id])
+}
