@@ -1,3 +1,4 @@
+import { LoaderFunction} from "@remix-run/node";
 import axios from "axios";
 import prisma from "~/db.server";
 

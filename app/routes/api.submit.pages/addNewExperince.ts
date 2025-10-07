@@ -1,7 +1,7 @@
 import { ConvertSettings } from "./types";
 import prisma from "~/db.server";
 import sendEmail from "~/utils/sendEmail";
-import CallConvertAPI from "~/utils/convert";
+import { CallConvertAPI } from "~/utils/convert";
 
 const CONVERT_API_URL = process.env.CONVERT_API_URL;
 

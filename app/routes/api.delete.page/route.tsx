@@ -1,6 +1,6 @@
 import { json } from "@remix-run/node";
 import { authenticate } from "~/shopify.server";
-import CallConvertAPI from "~/utils/convert";
+import { CallConvertAPI } from "~/utils/convert";
 import prisma from "~/db.server";
 const CONVERT_API_URL = process.env.CONVERT_API_URL;
 
@@ -60,7 +60,6 @@ export const action = async ({ request }) => {
 
     if (getAllVariants.length === 2) {
       for (const variant of getAllVariants) {
-
         if (variant.name === "Original") {
           // Delete experience if merchant delelted all variants fromt the app.
           await CallConvertAPI({
