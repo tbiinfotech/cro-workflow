@@ -59,6 +59,7 @@ export default function ModalExample({
     if (selectedPage) {
       const data = {
         pageId: selectedPage.pageId,
+        handle: selectedPage.handle,
       };
 
       const response = await fetch("/api/delete/page", {

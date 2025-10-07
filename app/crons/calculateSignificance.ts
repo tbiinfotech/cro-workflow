@@ -1,4 +1,8 @@
 import prisma from "~/db.server";
+import sendWinEmail from "~/utils/sendEmail";
+
+const CONVERT_API_URL = process.env.CONVERT_API_URL;
+const APP_URL = process.env.APP_URL;
 
 const loader = async () => {
   const originalPages = await prisma.shopify_pages.findMany({
@@ -6,7 +10,9 @@ const loader = async () => {
       convert_experiences: true,
     },
   });
+
   const setting = await prisma.setting.findFirst();
+
   const {
     convert_account_id,
     convert_project_id,
@@ -23,7 +29,7 @@ const loader = async () => {
         if (!experienceId) return;
 
         const report = await fetch(
-          `https://api.convert.com/api/v2/accounts/${convert_account_id}/projects/${convert_project_id}/experiences/${experienceId}/aggregated_report`,
+          `${CONVERT_API_URL}/v2/accounts/${convert_account_id}/projects/${convert_project_id}/experiences/${experienceId}/aggregated_report`,
           {
             method: "POST",
             headers: {
@@ -36,12 +42,14 @@ const loader = async () => {
         const reportResult = await report.json();
 
         const experimentsSignificance = reportResult.data.reportData.map(
-          (experiment) => {
-            const baseline = experiment.variations.find((v) => v.is_baseline);
+          (experiment: any) => {
+            const baseline = experiment.variations.find(
+              (v: any) => v.is_baseline,
+            );
 
             // Filter statistically significant variants with higher conversion rate than baseline
             const winningVariants = experiment.variations.filter(
-              (v) =>
+              (v: any) =>
                 !v.is_baseline &&
                 v.conversion_data.statistically_significant === true &&
                 v.conversion_data.conversion_rate >
@@ -50,7 +58,7 @@ const loader = async () => {
 
             // Pick the highest conversion rate winner if any exists
             const winner = winningVariants.length
-              ? winningVariants.reduce((prev, current) =>
+              ? winningVariants.reduce((prev: any, current: any) =>
                   current.conversion_data.conversion_rate >
                   prev.conversion_data.conversion_rate
                     ? current
@@ -72,13 +80,32 @@ const loader = async () => {
           },
         );
 
+        for (const expSignificance of experimentsSignificance) {
+          if (
+            expSignificance.statisticallySignificant &&
+            expSignificance.winner
+          ) {
+            const winner = expSignificance.winner;
+            const approveUrl = `${APP_URL}/app/variant/approve?goalId=${expSignificance.goal_id}&variantId=${expSignificance.winner.id}?experienceId=${experienceId}`;
+
+            const mailOptions = {
+              from: '"Your App" <no-reply@yourapp.com>',
+              to: "sanchit.chauhan@brihaspatitech.com",
+              subject: "Winning Variant Ready for Approval",
+              html: `
+                <p>The winning variant is: <strong>${winner.name}</strong> with a conversion rate of ${winner.conversion_rate}%.</p>
+                <p><a href="${approveUrl}" style="display:inline-block;padding:10px 15px;background:#007bff;color:#fff;text-decoration:none;border-radius:5px;">
+                Approve Variant</a></p>
+              `,
+            };
+            await sendWinEmail(mailOptions);
+          }
+        }
+
         data.push({ experimentsSignificance });
       }),
     );
   }
-
-  console.log(data);
-
 };
 
 export default loader;
