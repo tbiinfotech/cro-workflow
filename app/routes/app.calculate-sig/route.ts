@@ -1,11 +1,11 @@
-import { json } from "@remix-run/node";
+import { LoaderFunction, json } from "@remix-run/node";
 import prisma from "~/db.server";
 import sendWinEmail from "~/utils//sendEmail";
 
 const CONVERT_API_URL = process.env.CONVERT_API_URL;
 const APP_URL = process.env.APP_URL;
 
-const loader = async () => {
+export const loader: LoaderFunction = async  () => {
   const originalPages = await prisma.shopify_pages.findMany({
     include: {
       convert_experiences: true,
@@ -110,5 +110,3 @@ const loader = async () => {
 
   return json({ success: true, data });
 };
-
-export default loader;
