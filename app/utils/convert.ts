@@ -7,7 +7,7 @@ interface ConvertAPIParams {
   data?: any;
 }
 
-const callConvertAPI = async ({
+export const CallConvertAPI = async ({
   url,
   method,
   data,
@@ -43,5 +43,3 @@ const callConvertAPI = async ({
     throw error;
   }
 };
-
-export default callConvertAPI;
