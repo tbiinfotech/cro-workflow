@@ -93,7 +93,7 @@ export const action = async ({ request }) => {
 
         await prisma.convert_experiences.delete({
           where: {
-            experienceId: variant.id,
+            experienceId: variant.experienceId,
           },
         });
       }
