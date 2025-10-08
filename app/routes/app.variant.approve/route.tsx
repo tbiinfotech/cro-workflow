@@ -9,6 +9,7 @@ export const addNewExperienceWithWinVariant = async (
   experienceId: string,
   variantId: string,
   setting: any,
+  CallConvertAPI: any,
 ) => {
   const { convert_account_id, convert_project_id } = setting;
 
@@ -101,7 +102,7 @@ export const action: ActionFunction = async ({ request }) => {
     await endExperienceOnConvert(experienceId, setting);
 
     // Convert selected variant to winner experience
-    await addNewExperienceWithWinVariant(experienceId, variantId, setting);
+    await addNewExperienceWithWinVariant(experienceId, variantId, setting, CallConvertAPI);
 
     // Optional: update your DB to record approved variant
 

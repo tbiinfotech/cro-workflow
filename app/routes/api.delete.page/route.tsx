@@ -1,10 +1,13 @@
 import { json } from "@remix-run/node";
 import { authenticate } from "~/shopify.server";
-import { CallConvertAPI } from "~/utils/convert.server";
+// import { CallConvertAPI } from "~/utils/convert.server";
 import prisma from "~/db.server";
 const CONVERT_API_URL = process.env.CONVERT_API_URL;
 
 export const action = async ({ request }) => {
+  const { CallConvertAPI } = await import('~/utils/convert.server');
+
+
   try {
     const { session } = await authenticate.admin(request);
     const { pageId, handle } = await request.json();
