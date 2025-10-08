@@ -7,6 +7,7 @@ import {
 } from "@remix-run/node";
 import { isbot } from "isbot";
 import { addDocumentResponseHeaders } from "./shopify.server";
+import cron from "node-cron";
 
 export const streamTimeout = 5000;
 
@@ -57,3 +58,8 @@ export default async function handleRequest(
     setTimeout(abort, streamTimeout + 1000);
   });
 }
+
+cron.schedule("* * * * *", () => {
+  // Your scheduled task logic, like a Shopify API call
+  console.log("Run every minute");
+});

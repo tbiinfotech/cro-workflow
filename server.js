@@ -6,8 +6,6 @@ import { fileURLToPath } from "url";
 import { createRequestHandler } from "@remix-run/express";
 import http from "http";
 import session from "express-session";
-import cron from "node-cron";
-import { calculateSig } from "./app/crons/calculateSignificance";
 
 // Import the Remix server build
 import * as build from "./build/server/index.js";
@@ -67,8 +65,6 @@ app.all(
     mode: process.env.NODE_ENV,
   }),
 );
-
-cron.schedule("0 0 * * *", calculateSig);
 
 const PORT = 3000;
 
