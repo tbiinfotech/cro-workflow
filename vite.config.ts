@@ -65,9 +65,16 @@ export default defineConfig({
     tsconfigPaths(),
   ],
   build: {
+    rollupOptions: {
+      external: ["@shopify/shopify-app-session-storage-postgresql"],
+    },
     assetsInlineLimit: 0,
   },
   optimizeDeps: {
-    include: ["@shopify/app-bridge-react", "@shopify/polaris", '@intelligems/headless/hydrogen'],
+    include: [
+      "@shopify/app-bridge-react",
+      "@shopify/polaris",
+      "@intelligems/headless/hydrogen",
+    ],
   },
 }) satisfies UserConfig;
