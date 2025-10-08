@@ -4,7 +4,7 @@ import sendWinEmail from "~/utils/sendEmail";
 const CONVERT_API_URL = process.env.CONVERT_API_URL;
 const APP_URL = process.env.APP_URL;
 
-const loader = async () => {
+export const calculateSig = async () => {
   const originalPages = await prisma.shopify_pages.findMany({
     include: {
       convert_experiences: true,
@@ -108,4 +108,4 @@ const loader = async () => {
   }
 };
 
-export default loader;
+

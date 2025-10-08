@@ -6,8 +6,8 @@ import { fileURLToPath } from "url";
 import { createRequestHandler } from "@remix-run/express";
 import http from "http";
 import session from "express-session";
-import cron from "node-cron"
-import calculateSig from "./app/crons/calculateSignificance"
+import cron from "node-cron";
+import { calculateSig } from "./app/crons/calculateSignificance";
 
 // Import the Remix server build
 import * as build from "./build/server/index.js";
@@ -20,7 +20,7 @@ const app = express();
 // Use compression middleware for performance
 app.use(compression());
 
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
 // Logging HTTP requests
 app.use(morgan("tiny"));
@@ -28,10 +28,10 @@ app.use(morgan("tiny"));
 // Secure headers for Shopify embedded apps
 app.use((req, res, next) => {
   const shop = req.query.shop || "";
-  if (shop !== '') {
+  if (shop !== "") {
     res.setHeader(
-      'Content-Security-Policy',
-      `frame-ancestors https://${shop} https://admin.shopify.com;`
+      "Content-Security-Policy",
+      `frame-ancestors https://${shop} https://admin.shopify.com;`,
     );
   }
   // res.setHeader("Access-Control-Allow-Origin", "*");
@@ -40,22 +40,23 @@ app.use((req, res, next) => {
   next();
 });
 
-
-app.use(session({
-  secret: "f5025d13ea32d106970342bbd773e14f880595791c797cb3295fe93804712468",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: true,           // Ensures the browser only sends the cookie over HTTPS
-    sameSite: "none",       // Required for third-party cookies in embedded Shopify apps
-    domain: "cro.ancestralsupplements.com" // Use your root domain
-  }
-}));
+app.use(
+  session({
+    secret: "f5025d13ea32d106970342bbd773e14f880595791c797cb3295fe93804712468",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: true, // Ensures the browser only sends the cookie over HTTPS
+      sameSite: "none", // Required for third-party cookies in embedded Shopify apps
+      domain: "cro.ancestralsupplements.com", // Use your root domain
+    },
+  }),
+);
 
 // Serve static files from public folder
 app.use(express.static(path.join(__dirname, "build/client/")));
 app.get("/privacy-policy", (req, res) => {
-  return res.sendFile('./privacy-policy.html', { root: __dirname });
+  return res.sendFile("./privacy-policy.html", { root: __dirname });
 });
 
 // All other requests go to Remix
@@ -64,10 +65,10 @@ app.all(
   createRequestHandler({
     build,
     mode: process.env.NODE_ENV,
-  })
+  }),
 );
 
-cron.schedule("0 0 * * *", calculateSig)
+cron.schedule("0 0 * * *", calculateSig);
 
 const PORT = 3000;
 
