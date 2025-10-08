@@ -83,19 +83,13 @@ export const action = async ({ request }) => {
             url: `${CONVERT_API_URL}/v2/accounts/${convert_account_id}/projects/${convert_project_id}/experiences/${variant.experienceId}/delete`,
             method: "DELETE",
           });
+
+          await prisma.convert_experiences.delete({
+            where: {
+              experienceId: variant.experienceId,
+            },
+          });
         }
-
-        await prisma.variants.delete({
-          where: {
-            id: variant.id,
-          },
-        });
-
-        await prisma.convert_experiences.delete({
-          where: {
-            experienceId: variant.experienceId,
-          },
-        });
       }
     } else {
       await CallConvertAPI({

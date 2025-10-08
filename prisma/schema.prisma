@@ -91,5 +91,5 @@ model variants {
   createdAt      DateTime
   updatedAt      DateTime
 
-  convert_experiences convert_experiences @relation(fields: [experienceId], references: [experienceId])
+  convert_experiences convert_experiences @relation(fields: [experienceId], references: [experienceId], onDelete: Cascade)
 }
