@@ -87,7 +87,7 @@ export const action = async ({ request }) => {
 
         await prisma.variants.delete({
           where: {
-            variantId: variant.id.toString(),
+            id: variant.id,
           },
         });
 
